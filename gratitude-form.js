@@ -6,21 +6,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const printButton = document.getElementById('print-letter');
     const resetButton = document.querySelector('.button-reset');
 
+    // Function to escape HTML special characters
+    function sanitizeInput(input) {
+        const div = document.createElement('div');
+        div.innerText = input;
+        return div.innerHTML;
+    }
+
     // Function to update preview in real-time
     function updatePreview() {
         // Get all form values
-        const title = form.letterTitle.value || "Letter of Gratitude";
+        const title = sanitizeInput(form.letterTitle.value || "Letter of Gratitude");
         const themeColor = document.querySelector('input[name="letterTheme"]:checked').value || "#000000";
-        const greeting = form.letterGreeting.value || "Dear";
-        const recipientName = form.recipientName.value || "John";
-        const relationship = form.relationshipTo.value || "best friend";
-        const historyTogether = form.historyTogether.value || "Your shared history will appear here.";
-        const sharedMemories = form.sharedMemories.value || "A favorite memory goes here.";
-        const impact = form.impactStatement.value || "How this person has impacted you goes here.";
-        const admiredQualities = form.admiredQualities.value || "Qualities you admire in this person go here.";
-        const thanksFor = form.thanksFor.value || "Things you are grateful for go here.";
-        const closing = form.formalClosing.value || "Sincerely";
-        const signature = form.yourSignature.value || "Your Name";
+        const greeting = sanitizeInput(form.letterGreeting.value || "Dear");
+        const recipientName = sanitizeInput(form.recipientName.value || "John");
+        const relationship = sanitizeInput(form.relationshipTo.value || "best friend");
+        const historyTogether = sanitizeInput(form.historyTogether.value || "Your shared history will appear here.");
+        const sharedMemories = sanitizeInput(form.sharedMemories.value || "A favorite memory goes here.");
+        const impact = sanitizeInput(form.impactStatement.value || "How this person has impacted you goes here.");
+        const admiredQualities = sanitizeInput(form.admiredQualities.value || "Qualities you admire in this person go here.");
+        const thanksFor = sanitizeInput(form.thanksFor.value || "Things you are grateful for go here.");
+        const closing = sanitizeInput(form.formalClosing.value || "Sincerely");
+        const signature = sanitizeInput(form.yourSignature.value || "Your Name");
         const today = new Date().toLocaleDateString();
 
         // Create sections HTML only if they have content

@@ -1,11 +1,12 @@
 <?php
-// Prevent direct access
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: index.html');
-    exit;
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
+
     // Collect form data
     $title = htmlspecialchars($_POST['letterTitle']);
     $themeColor = htmlspecialchars($_POST['letterTheme']);
@@ -26,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <html>
         <head>
             <style>
-                }
                 body {
                     font-family: Arial, sans-serif;
                     line-height: 1.6;
@@ -86,9 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </html>
         ";
 
-    // Generate filename
-    $filename = 'Gratitude_Letter_' . $recipient . '.doc';
-
     // Set headers for file download
     header('Content-Type: application/vnd.ms-word');
     header("Content-Disposition: attachment; filename=Gratitude_Letter_for_" . preg_replace("/[^a-zA-Z0-9]/", "_", $recipient) . ".doc");
@@ -96,6 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Output the file content
     echo $letterContent;
+    unset($_SESSION['csrf_token']);
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     exit;
+    }
+    else {
+        error_log('CSRF token verification failed');
+        header('Location: error.php?message=CSRF token verification failed');
+        exit;
+    }
 }
+
+header('Location: error.php?message=Invalid request');
+exit;
 ?>

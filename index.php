@@ -1,9 +1,20 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token']; 
+?>
+
 <!DOCTYPE html>
 <html>
 
 <head>
     <title>Guided Gratitude Letter</title>
-    
+
     <script src="gratitude-form.js"></script>
     <link rel="stylesheet" href="style.css">
 
@@ -22,16 +33,17 @@
     <div class="form-container">
         <h1>📝 Guided Gratitude Letter</h1>
         <p>Use the form below to craft a gratitude letter to someone who has made a positive impact in your life. If possible, deliver this letter in person and read it to them.</p>
-        
-        <form id="gratitude-form" action="process_gratitude_form.php" method="post">
+
+        <form id="gratitude-form" action="form_processing.php" method="post">
+            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <fieldset class="theme-section">
                 <legend>🎨 Theme</legend>
-                
+
                 <div class="form-group">
                     <label for="letterTitle">Give your letter a title</label>
                     <input type="text" id="letterTitle" name="letterTitle" maxlength="50" placeholder="🤗 THANK YOU SO MUCH" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="letterTheme">Select a color</label>
                     <div>
@@ -91,7 +103,7 @@
                     <input type="text" id="relationshipTo" name="relationshipTo" maxlength="50" placeholder="e.g., best friend, friend, coworker, mentor, sister, brother, mother, father" required>
                 </div>
             </fieldset>
-            
+
             <fieldset class="body-section">
                 <legend>📜 Body</legend>
                 <div class="form-group">
@@ -144,21 +156,22 @@
                     <input type="text" id="yourSignature" name="yourSignature" maxlength="50" placeholder="Jane" required>
                 </div>
             </fieldset>
-            
-            <div class="button-group">
-            <button type="reset" class="button-reset">🧹 Clear Form</button>
-            <button id="print-letter" type="button" class="button-print">🖨️ Print Letter</button>
-            <button type="submit" class="button-submit">📩 Download Letter</button>
-            </div>
-        
-        </form><br>
-        
-        <fieldset class="preview-section">
-        <legend>👁️ Preview</legend>
-        <div class="preview-content">
 
-        </div>
+            <div class="button-group">
+                <button type="reset" class="button-reset">🧹 Clear Form</button>
+                <button id="print-letter" type="button" class="button-print">🖨️ Print Letter</button>
+                <button type="submit" class="button-submit">📩 Download Letter</button>
+            </div>
+
+        </form><br>
+
+        <fieldset class="preview-section">
+            <legend>👁️ Preview</legend>
+            <div class="preview-content">
+
+            </div>
         </fieldset>
     </div>
 </body>
+
 </html>
