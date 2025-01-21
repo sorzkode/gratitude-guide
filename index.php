@@ -3,10 +3,24 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once '.private/db_config.php';
+
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
-$csrf_token = $_SESSION['csrf_token']; 
+$csrf_token = $_SESSION['csrf_token'];
+
+try {
+    $pdo = getDbConnection();
+    if ($pdo) {
+        $stmt = $pdo->query("SELECT COUNT(*) as total FROM gratitude_letters");
+        $result = $stmt->fetch();
+        $totalLetters = $result['total'];
+    }
+} catch (Exception $e) {
+    error_log("Error fetching statistics: " . $e->getMessage());
+    $totalLetters = 0;
+}
 ?>
 
 <!DOCTYPE html>
@@ -17,6 +31,8 @@ $csrf_token = $_SESSION['csrf_token'];
 
     <script src="gratitude-form.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="canonical" href="https://gratitude.thoughtcultivation.com">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,8 +50,19 @@ $csrf_token = $_SESSION['csrf_token'];
         <h1>📝 Guided Gratitude Letter</h1>
         <p>Use the form below to craft a gratitude letter to someone who has made a positive impact in your life. If possible, deliver this letter in person and read it to them.</p>
 
+        <?php if (isset($totalLetters) && $totalLetters > 0): ?>
+            <div class="stats-banner" style="text-align: center; margin-bottom: 20px; padding: 10px; background-color: #f0f9ff; border-radius: 5px;">
+                <p>🌟 Our community has shared <strong><?php echo number_format($totalLetters); ?></strong> public letters of gratitude!</p>
+            </div>
+        <?php endif; ?>
+
         <form id="gratitude-form" action="form_processing.php" method="post">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+
+            <div class="back-link">
+                <a href="https://thoughtcultivation.com/#gratitudeguide" target="_blank">⬅️ back to main site</a>
+            </div>
+
             <fieldset class="theme-section">
                 <legend>🎨 Theme</legend>
 
@@ -48,28 +75,28 @@ $csrf_token = $_SESSION['csrf_token'];
                     <label for="letterTheme">Select a color</label>
                     <div>
                         <input type="radio" id="theme-black" name="letterTheme" value="#000000" checked>
-                        <label for="theme-black">Black <span style="color:  #000000; display: inline-block;">■</span></label>
+                        <label for="theme-black"><span style="color:  #000000; display: inline-block;">■</span> Black</label>
 
                         <input type="radio" id="theme-blue" name="letterTheme" value="#0010c2">
-                        <label for="theme-blue">Blue <span style="color:  #0010c2; display: inline-block;">■</span></label>
+                        <label for="theme-blue"><span style="color:  #0010c2; display: inline-block;">■</span> Blue</label>
 
                         <input type="radio" id="theme-green" name="letterTheme" value="#2a792d">
-                        <label for="theme-green">Green <span style="color: #2a792d; display: inline-block;">■</span></label>
+                        <label for="theme-green"><span style="color: #2a792d; display: inline-block;">■</span> Green</label>
 
                         <input type="radio" id="theme-purple" name="letterTheme" value="#660066">
-                        <label for="theme-purple">Purple <span style="color: #660066; display: inline-block;">■</span></label>
+                        <label for="theme-purple"><span style="color: #660066; display: inline-block;">■</span> Purple</label>
 
                         <input type="radio" id="theme-pink" name="letterTheme" value="#ffb4c0">
-                        <label for="theme-pink">Pink <span style="color: #ffb4c0; display: inline-block;">■</span></label>
+                        <label for="theme-pink"><span style="color: #ffb4c0; display: inline-block;">■</span> Pink</label>
 
                         <input type="radio" id="theme-red" name="letterTheme" value="#d30000">
-                        <label for="theme-red">Red <span style="color: #d30000; display: inline-block;">■</span></label>
+                        <label for="theme-red"><span style="color: #d30000; display: inline-block;">■</span> Red</label>
 
                         <input type="radio" id="theme-orange" name="letterTheme" value="#e19200">
-                        <label for="theme-orange">Orange <span style="color: #e19200; display: inline-block;">■</span></label>
+                        <label for="theme-orange"><span style="color: #e19200; display: inline-block;">■</span> Orange</label>
 
                         <input type="radio" id="theme-brown" name="letterTheme" value="#8b4a1f">
-                        <label for="theme-brown">Brown <span style="color: #8b4a1f; display: inline-block;">■</span></label><br>
+                        <label for="theme-brown"><span style="color: #8b4a1f; display: inline-block;">■</span> Brown</label><br>
                         <p style="text-align: center;"><i>pssst....pick their favorite color</i></p>
                     </div>
                 </div>
@@ -156,6 +183,11 @@ $csrf_token = $_SESSION['csrf_token'];
                     <input type="text" id="yourSignature" name="yourSignature" maxlength="50" placeholder="Jane" required>
                 </div>
             </fieldset>
+
+            <div class="make-public-container">
+                <input type="checkbox" id="makePublic" name="makePublic" value="1">
+                <label for="makePublic">Share this letter with the community</label>
+            </div>
 
             <div class="button-group">
                 <button type="reset" class="button-reset">🧹 Clear Form</button>

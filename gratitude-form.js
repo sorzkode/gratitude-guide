@@ -113,7 +113,41 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Handle print functionality
-    printButton.addEventListener('click', function () {
+    printButton.addEventListener('click', async function () {
+        // If public checkbox selected, submit to DB prior to printing
+        const makePublicCheckbox = document.getElementById('makePublic');
+        if (makePublicCheckbox && makePublicCheckbox.checked) {
+            // Create hidden form to submit the data
+            const hiddenForm = document.createElement('form');
+            hiddenForm.method = 'POST';
+            hiddenForm.action = 'form_processing.php';
+
+            // Add form data
+            const formData = new FormData(document.getElementById('gratitude-form'));
+            for (let pair of formData.entries()) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = pair[0];
+                input.value = pair[1];
+                hiddenForm.appendChild(input);
+            }
+
+            // Add makePublic field
+            const publicInput = document.createElement('input');
+            publicInput.type = 'hidden';
+            publicInput.name = 'makePublic';
+            publicInput.value = '1';
+            hiddenForm.appendChild(publicInput);
+
+            // Submit form in background
+            document.body.appendChild(hiddenForm);
+            await new Promise(resolve => {
+                hiddenForm.submit();
+                setTimeout(resolve, 500);
+            });
+            document.body.removeChild(hiddenForm);
+        }
+        
         const printWindow = window.open('', '_blank');
         const printContent = previewContent.innerHTML;
 
